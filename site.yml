@@ -1,7 +1,40 @@
 ---
-- hosts: web_servers
-  become: true
+- name: Gather OS Information
+  hosts: localhost
+  gather_facts: true
   tasks:
-    - name: Print OS info
-      ansible.builtin.package:
-        name: apache2
+    - name: Display OS Distribution
+      debug:
+        msg: "OS Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Display Kernel Version
+      debug:
+        msg: "Kernel Version: {{ ansible_kernel }}"
+
+    - name: Display System Architecture
+      debug:
+        msg: "Architecture: {{ ansible_architecture }}"
+
+    - name: Display Memory Information
+      debug:
+        msg: |
+          Total Memory: {{ ansible_memtotal_mb }}MB
+          Free Memory: {{ ansible_memfree_mb }}MB
+
+    - name: Display Processor Information
+      debug:
+        msg: |
+          CPU Count: {{ ansible_processor_count }}
+          CPU Cores: {{ ansible_processor_cores }}
+          CPU Model: {{ ansible_processor[1] }}
+
+    - name: Display Disk Information
+      debug:
+        msg: "{{ item.mount }} ({{ item.device }}): {{ item.size_total | human_readable }} total, {{ item.size_available | human_readable }} free"
+      loop: "{{ ansible_mounts }}"
+
+    - name: Display Network Interfaces
+      debug:
+        msg: "Interface {{ item.key }}: {{ item.value.ipv4.address | default('No IPv4') }}"
+      loop: "{{ ansible_facts | dict2items }}"
+      when: item.key.startswith('ansible_') and 'ipv4' in item.value
